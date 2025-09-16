@@ -75,8 +75,17 @@ void FingerprintGrowComponent::setup() {
     }
   }
 
-  // ESP_LOGI(TAG, "Running in mode: %s", this->mode_);
-  
+  const char* mode_str = "unknown";
+  switch (this->mode_) {
+    case GROW_MODE_STANDALONE:
+      mode_str = "standalone";
+      break;
+    case GROW_MODE_HOMEID:
+      mode_str = "homeid";
+      break;
+  }
+  ESP_LOGI(TAG, "Running in mode: %s", mode_str);
+
 
   // Place the sensor in a known (sleep/off) state and sync internal var state.
   this->sensor_sleep_();
