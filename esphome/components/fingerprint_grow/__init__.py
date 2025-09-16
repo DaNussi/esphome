@@ -42,8 +42,8 @@ FingerprintGrowComponent = fingerprint_grow_ns.class_(
 # GrowMode enum and validation (must be after namespace)
 GrowMode = fingerprint_grow_ns.enum("GrowMode")
 GROW_MODES = {
-    "standalone": GrowMode.GROW_MODE_STANDALONE,
-    "homeid": GrowMode.GROW_MODE_HOMEID,
+    "STANDALONE": GrowMode.GROW_MODE_STANDALONE,
+    "HOMEID": GrowMode.GROW_MODE_HOMEID,
 }
 validate_grow_mode = cv.enum(GROW_MODES, upper=True)
 

@@ -99,7 +99,6 @@ enum GrowMode {
 
 
 class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevice {
-  void set_mode(GrowMode mode) { this->mode_ = mode; }
  public:
   void update() override;
   void setup() override;
@@ -113,6 +112,7 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   }
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
+  void set_mode(GrowMode mode) { this->mode_ = mode; }
   void set_password(uint32_t password) { this->password_ = password; }
   void set_new_password(uint32_t new_password) { this->new_password_ = new_password; }
   void set_idle_period_to_sleep_ms(uint32_t period_ms) { this->idle_period_to_sleep_ms_ = period_ms; }
