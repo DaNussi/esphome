@@ -92,7 +92,14 @@ enum GrowAuraLEDColor {
   WHITE = 0x07,
 };
 
+enum GrowMode {
+  GROW_MODE_STANDALONE = "standalone",
+  GROW_MODE_HOMEID = "homeid"
+};
+
+
 class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevice {
+  void set_mode(GrowMode mode) { this->mode_ = mode; }
  public:
   void update() override;
   void setup() override;
@@ -161,6 +168,7 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   void aura_led_control(uint8_t state, uint8_t speed, uint8_t color, uint8_t count);
 
  protected:
+  GrowMode mode_ = GROW_MODE_STANDALONE;
   void scan_and_match_();
   uint8_t scan_image_(uint8_t buffer);
   uint8_t save_fingerprint_();
@@ -174,6 +182,7 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   void sensor_sleep_();
 
   std::vector<uint8_t> data_ = {};
+  std::vector<uint8_t> image_ = {};
   uint8_t address_[4] = {0xFF, 0xFF, 0xFF, 0xFF};
   uint16_t capacity_ = 64;
   uint32_t password_ = 0x0;

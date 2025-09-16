@@ -31,12 +31,21 @@ MULTI_CONF = True
 
 CONF_FINGERPRINT_GROW_ID = "fingerprint_grow_id"
 CONF_SENSOR_POWER_PIN = "sensor_power_pin"
+CONF_MODE = "mode"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
 
 fingerprint_grow_ns = cg.esphome_ns.namespace("fingerprint_grow")
 FingerprintGrowComponent = fingerprint_grow_ns.class_(
     "FingerprintGrowComponent", cg.PollingComponent, uart.UARTDevice
 )
+
+# GrowMode enum and validation (must be after namespace)
+GrowMode = fingerprint_grow_ns.enum("GrowMode")
+GROW_MODES = {
+    "standalone": GrowMode.GROW_MODE_STANDALONE,
+    "homeid": GrowMode.GROW_MODE_HOMEID,
+}
+validate_grow_mode = cv.enum(GROW_MODES, upper=True)
 
 FingerScanStartTrigger = fingerprint_grow_ns.class_(
     "FingerScanStartTrigger", automation.Trigger.template()
@@ -118,6 +127,7 @@ CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(FingerprintGrowComponent),
+            cv.Optional(CONF_MODE): validate_grow_mode,
             cv.Optional(CONF_SENSING_PIN): pins.gpio_input_pin_schema,
             cv.Optional(CONF_SENSOR_POWER_PIN): pins.gpio_output_pin_schema,
             cv.Optional(
@@ -189,6 +199,7 @@ CONFIG_SCHEMA = cv.All(
 )
 
 
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -196,6 +207,9 @@ async def to_code(config):
         password = config[CONF_PASSWORD]
         cg.add(var.set_password(password))
     await uart.register_uart_device(var, config)
+
+    if CONF_MODE in config:
+        cg.add(var.set_mode(config[CONF_MODE]))
 
     if CONF_NEW_PASSWORD in config:
         new_password = config[CONF_NEW_PASSWORD]

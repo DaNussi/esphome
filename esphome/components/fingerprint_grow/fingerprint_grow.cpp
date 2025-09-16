@@ -75,6 +75,9 @@ void FingerprintGrowComponent::setup() {
     }
   }
 
+  ESP_LOGI(TAG, "Running in mode: %s", this->mode_);
+  
+
   // Place the sensor in a known (sleep/off) state and sync internal var state.
   this->sensor_sleep_();
   delay(20);  // This delay guarantees the sensor will in fact be powered power.
