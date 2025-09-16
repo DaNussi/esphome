@@ -93,8 +93,8 @@ enum GrowAuraLEDColor {
 };
 
 enum GrowMode {
-  GROW_MODE_STANDALONE = "standalone",
-  GROW_MODE_HOMEID = "homeid"
+  GROW_MODE_STANDALONE = 0x00,
+  GROW_MODE_HOMEID = 0x01
 };
 
 
