@@ -321,7 +321,7 @@ void FingerprintGrowComponent::get_fingerprint_count_() {
 }
 
 void FingerprintGrowComponent::download_image_() {
-
+  // TODO: DOWNLOAD AND PUBLISH IMAGE
 };
 
 void FingerprintGrowComponent::delete_fingerprint(uint16_t finger_id) {
