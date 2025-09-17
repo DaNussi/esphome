@@ -34,13 +34,6 @@ void FingerprintGrowComponent::update() {
     if ((!this->has_sensing_pin_) && (this->scan_image_(1) == NO_FINGER)) {
       ESP_LOGD(TAG, "Finger removed");
       this->waiting_removal_ = false;
-      this->finger_scan_end_callback_.call();
-
-      if(this->mode_ == GROW_MODE_HOMEID) {
-        ESP_LOGI(TAG, "Downloading image from sensor");
-        download_image_();
-      }
-
     }
     return;
   }
@@ -156,6 +149,14 @@ void FingerprintGrowComponent::scan_and_match_() {
   }
   if (this->scan_image_(1) == OK) {
     this->waiting_removal_ = true;
+
+    this->finger_scan_end_callback_.call();
+    if(this->mode_ == GROW_MODE_HOMEID) {
+      ESP_LOGI(TAG, "Downloading image from sensor");
+      download_image_();
+      return;
+    }
+
     this->data_ = {SEARCH, 0x01, 0x00, 0x00, (uint8_t) (this->capacity_ >> 8), (uint8_t) (this->capacity_ & 0xFF)};
     switch (this->send_command_()) {
       case OK: {
