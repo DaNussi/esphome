@@ -34,9 +34,17 @@ void FingerprintGrowComponent::update() {
     if ((!this->has_sensing_pin_) && (this->scan_image_(1) == NO_FINGER)) {
       ESP_LOGD(TAG, "Finger removed");
       this->waiting_removal_ = false;
+      this->finger_scan_end_callback_.call();
+
+      if(this->mode_ == GROW_MODE_HOMEID) {
+        ESP_LOGI(TAG, "Downloading image from sensor.")
+        download_image_();
+      }
+
     }
     return;
   }
+
 
   if (this->enrollment_image_ == 0) {
     this->scan_and_match_();
@@ -104,6 +112,11 @@ void FingerprintGrowComponent::setup() {
 }
 
 void FingerprintGrowComponent::enroll_fingerprint(uint16_t finger_id, uint8_t num_buffers) {
+  if(this->mode_ == GROW_MODE_HOMEID) {
+    ESP_LOGE(TAG, "Cannot enroll finger on sensor in homeid mode.")
+    return;
+  }
+
   ESP_LOGI(TAG, "Starting enrollment in slot %d", finger_id);
   if (this->enrolling_binary_sensor_ != nullptr) {
     this->enrolling_binary_sensor_->publish_state(true);
@@ -114,6 +127,11 @@ void FingerprintGrowComponent::enroll_fingerprint(uint16_t finger_id, uint8_t nu
 }
 
 void FingerprintGrowComponent::finish_enrollment(uint8_t result) {
+   if(this->mode_ == GROW_MODE_HOMEID) {
+    ESP_LOGE(TAG, "Cannot cancle enrollment in homeid mode.")
+    return;
+  }
+
   if (result == OK) {
     this->enrollment_done_callback_.call(this->enrollment_slot_);
     this->get_fingerprint_count_();
@@ -300,6 +318,10 @@ void FingerprintGrowComponent::get_fingerprint_count_() {
       this->fingerprint_count_sensor_->publish_state(((uint16_t) this->data_[1] << 8) | this->data_[2]);
   }
 }
+
+void FingerprintGrowComponent::download_image_() {
+
+};
 
 void FingerprintGrowComponent::delete_fingerprint(uint16_t finger_id) {
   ESP_LOGI(TAG, "Deleting fingerprint in slot %d", finger_id);

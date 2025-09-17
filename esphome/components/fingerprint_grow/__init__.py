@@ -16,6 +16,7 @@ from esphome.const import (
     CONF_ON_FINGER_SCAN_MATCHED,
     CONF_ON_FINGER_SCAN_MISPLACED,
     CONF_ON_FINGER_SCAN_START,
+    CONF_ON_FINGER_SCAN_END,
     CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
     CONF_SENSING_PIN,
@@ -49,6 +50,10 @@ validate_grow_mode = cv.enum(GROW_MODES, upper=True)
 
 FingerScanStartTrigger = fingerprint_grow_ns.class_(
     "FingerScanStartTrigger", automation.Trigger.template()
+)
+
+FingerScanEndTrigger = fingerprint_grow_ns.class_(
+    "FingerScanEndTrigger", automation.Trigger.template()
 )
 
 FingerScanMatchedTrigger = fingerprint_grow_ns.class_(
@@ -142,6 +147,13 @@ CONFIG_SCHEMA = cv.All(
                     ),
                 }
             ),
+            cv.Optional(CONF_ON_FINGER_SCAN_END): automation.validate_automation(
+                {
+                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
+                        FingerScanEndTrigger
+                    ),
+                }
+            ),
             cv.Optional(CONF_ON_FINGER_SCAN_MATCHED): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
@@ -228,6 +240,10 @@ async def to_code(config):
         cg.add(var.set_idle_period_to_sleep_ms(idle_period_to_sleep_ms))
 
     for conf in config.get(CONF_ON_FINGER_SCAN_START, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(trigger, [], conf)
+
+    for conf in config.get(CONF_ON_FINGER_SCAN_END, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
 
