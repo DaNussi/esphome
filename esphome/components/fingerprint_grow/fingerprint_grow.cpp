@@ -37,7 +37,7 @@ void FingerprintGrowComponent::update() {
       this->finger_scan_end_callback_.call();
 
       if(this->mode_ == GROW_MODE_HOMEID) {
-        ESP_LOGI(TAG, "Downloading image from sensor.")
+        ESP_LOGI(TAG, "Downloading image from sensor");
         download_image_();
       }
 
@@ -113,7 +113,7 @@ void FingerprintGrowComponent::setup() {
 
 void FingerprintGrowComponent::enroll_fingerprint(uint16_t finger_id, uint8_t num_buffers) {
   if(this->mode_ == GROW_MODE_HOMEID) {
-    ESP_LOGE(TAG, "Cannot enroll finger on sensor in homeid mode.")
+    ESP_LOGE(TAG, "Cannot enroll finger on sensor in homeid mode");
     return;
   }
 
@@ -128,7 +128,7 @@ void FingerprintGrowComponent::enroll_fingerprint(uint16_t finger_id, uint8_t nu
 
 void FingerprintGrowComponent::finish_enrollment(uint8_t result) {
    if(this->mode_ == GROW_MODE_HOMEID) {
-    ESP_LOGE(TAG, "Cannot cancle enrollment in homeid mode.")
+    ESP_LOGE(TAG, "Cannot cancle enrollment in homeid mode");
     return;
   }
 

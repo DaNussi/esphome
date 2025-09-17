@@ -235,7 +235,7 @@ class FingerScanEndTrigger : public Trigger<> {
   explicit FingerScanEndTrigger(FingerprintGrowComponent *parent) {
     parent->add_on_finger_scan_end_callback([this]() { this->trigger(); });
   }
-}
+};
 
 class FingerScanMatchedTrigger : public Trigger<uint16_t, uint16_t> {
  public:
