@@ -9,14 +9,6 @@ from esphome.const import (
     CONF_ID,
     CONF_NEW_PASSWORD,
     CONF_NUM_SCANS,
-    CONF_ON_ENROLLMENT_DONE,
-    CONF_ON_ENROLLMENT_FAILED,
-    CONF_ON_ENROLLMENT_SCAN,
-    CONF_ON_FINGER_SCAN_INVALID,
-    CONF_ON_FINGER_SCAN_MATCHED,
-    CONF_ON_FINGER_SCAN_MISPLACED,
-    CONF_ON_FINGER_SCAN_START,
-    CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
     CONF_SENSING_PIN,
     CONF_SPEED,
@@ -31,69 +23,87 @@ MULTI_CONF = True
 
 CONF_FINGERPRINT_GROW_ID = "fingerprint_grow_id"
 CONF_SENSOR_POWER_PIN = "sensor_power_pin"
-CONF_MODE = "mode"
 CONF_IDLE_PERIOD_TO_SLEEP = "idle_period_to_sleep"
-CONF_ON_FINGER_SCAN_END = "on_finger_scan_end"
+
+CONF_ON_SLEEP_ENTER = "on_sleep_enter"
+CONF_ON_SLEEP_EXIT = "on_sleep_exit"
+CONF_ON_SCAN_START = "on_scan_start"
+CONF_ON_SCAN_END = "on_scan_end"
+CONF_ON_SCAN_WAITING = "on_scan_waiting"
+CONF_ON_ENROLLMENT_WAITING = "on_enrollment_waiting"
+CONF_ON_ENROLLMENT_FINISHED = "on_enrollment_finished"
+CONF_ON_ENROLLMENT_FAILED = "on_enrollment_failed"
+CONF_ON_FINGER_MISSING = "on_finger_missing"
+CONF_ON_FINGER_MISSPLACED = "on_finger_missplaced"
+CONF_ON_FINGER_MATCHED = "on_finger_matched"
+CONF_ON_FINGER_NOT_FOUND = "on_finger_not_found"
+
+# ========================== NAMESPACE ========================== #
 
 fingerprint_grow_ns = cg.esphome_ns.namespace("fingerprint_grow")
 FingerprintGrowComponent = fingerprint_grow_ns.class_(
     "FingerprintGrowComponent", cg.PollingComponent, uart.UARTDevice
 )
 
-# GrowMode enum and validation (must be after namespace)
-GrowMode = fingerprint_grow_ns.enum("GrowMode")
-GROW_MODES = {
-    "STANDALONE": GrowMode.GROW_MODE_STANDALONE,
-    "HOMEID": GrowMode.GROW_MODE_HOMEID,
-}
-validate_grow_mode = cv.enum(GROW_MODES, upper=True)
+# ========================== TRIGGER ========================== #
 
-FingerScanStartTrigger = fingerprint_grow_ns.class_(
-    "FingerScanStartTrigger", automation.Trigger.template()
+SleepEnterTrigger = fingerprint_grow_ns.class_(
+    "SleepEnterTrigger", automation.Trigger.template()
 )
 
-FingerScanEndTrigger = fingerprint_grow_ns.class_(
-    "FingerScanEndTrigger", automation.Trigger.template()
+SleepExitTrigger = fingerprint_grow_ns.class_(
+    "SleepExitTrigger", automation.Trigger.template()
 )
 
-FingerScanMatchedTrigger = fingerprint_grow_ns.class_(
-    "FingerScanMatchedTrigger", automation.Trigger.template(cg.uint16, cg.uint16)
+ScanStartTrigger = fingerprint_grow_ns.class_(
+    "ScanStartTrigger", automation.Trigger.template()
 )
 
-FingerScanUnmatchedTrigger = fingerprint_grow_ns.class_(
-    "FingerScanUnmatchedTrigger", automation.Trigger.template()
+ScanEndTrigger = fingerprint_grow_ns.class_(
+    "ScanEndTrigger", automation.Trigger.template()
 )
 
-FingerScanMisplacedTrigger = fingerprint_grow_ns.class_(
-    "FingerScanMisplacedTrigger", automation.Trigger.template()
+ScanWaitingTrigger = fingerprint_grow_ns.class_(
+    "ScanWaitingTrigger", automation.Trigger.template()
 )
 
-FingerScanInvalidTrigger = fingerprint_grow_ns.class_(
-    "FingerScanInvalidTrigger", automation.Trigger.template()
+EnrollmentWaitingTrigger = fingerprint_grow_ns.class_(
+    "EnrollmentWaitingTrigger", automation.Trigger.template()
 )
 
-EnrollmentScanTrigger = fingerprint_grow_ns.class_(
-    "EnrollmentScanTrigger", automation.Trigger.template(cg.uint8, cg.uint16)
-)
-
-EnrollmentDoneTrigger = fingerprint_grow_ns.class_(
-    "EnrollmentDoneTrigger", automation.Trigger.template(cg.uint16)
+EnrollmentFinishedTrigger = fingerprint_grow_ns.class_(
+    "EnrollmentFinishedTrigger", automation.Trigger.template()
 )
 
 EnrollmentFailedTrigger = fingerprint_grow_ns.class_(
-    "EnrollmentFailedTrigger", automation.Trigger.template(cg.uint16)
+    "EnrollmentFailedTrigger", automation.Trigger.template()
 )
 
-EnrollmentAction = fingerprint_grow_ns.class_("EnrollmentAction", automation.Action)
-CancelEnrollmentAction = fingerprint_grow_ns.class_(
-    "CancelEnrollmentAction", automation.Action
+FingerMissingTrigger = fingerprint_grow_ns.class_(
+    "FingerMissingTrigger", automation.Trigger.template()
 )
-DeleteAction = fingerprint_grow_ns.class_("DeleteAction", automation.Action)
-DeleteAllAction = fingerprint_grow_ns.class_("DeleteAllAction", automation.Action)
-LEDControlAction = fingerprint_grow_ns.class_("LEDControlAction", automation.Action)
-AuraLEDControlAction = fingerprint_grow_ns.class_(
-    "AuraLEDControlAction", automation.Action
+
+FingerMissplaceTrigger = fingerprint_grow_ns.class_(
+    "FingerMissplacedTrigger", automation.Trigger.template()
 )
+
+FingerMatchedTrigger = fingerprint_grow_ns.class_(
+    "FingerMatchedTrigger", automation.Trigger.template()
+)
+
+FingerNotFoundTrigger = fingerprint_grow_ns.class_(
+    "FingerNotFoundTrigger", automation.Trigger.template()
+)
+
+# ========================== ACTIONS DECLARATION ========================== #
+
+StartEnrollmentAction = fingerprint_grow_ns.class_("StartEnrollmentAction", automation.Action)
+CancelEnrollmentAction = fingerprint_grow_ns.class_("CancelEnrollmentAction", automation.Action)
+DeleteTemplateAction = fingerprint_grow_ns.class_("DeleteTemplateAction", automation.Action)
+DeleteAllTemplatesAction = fingerprint_grow_ns.class_("DeleteAllTemplatesAction", automation.Action)
+AuraLedControlAction = fingerprint_grow_ns.class_("AuraLedControlAction", automation.Action)
+
+# ========================== ENUMS ========================== #
 
 AuraLEDState = fingerprint_grow_ns.enum("GrowAuraLEDState", True)
 AURA_LED_STATES = {
@@ -105,6 +115,7 @@ AURA_LED_STATES = {
     "GRADUAL_OFF": AuraLEDState.GRADUAL_OFF,
 }
 validate_aura_led_states = cv.enum(AURA_LED_STATES, upper=True)
+
 AuraLEDColor = fingerprint_grow_ns.enum("GrowAuraLEDColor", True)
 AURA_LED_COLORS = {
     "RED": AuraLEDColor.RED,
@@ -117,6 +128,7 @@ AURA_LED_COLORS = {
 }
 validate_aura_led_colors = cv.enum(AURA_LED_COLORS, upper=True)
 
+# ========================== VALIDATION ========================== #
 
 def validate(config):
     if CONF_SENSOR_POWER_PIN in config and CONF_SENSING_PIN not in config:
@@ -127,12 +139,12 @@ def validate(config):
         )
     return config
 
+# ========================== CONFIG SCHEMA ========================== #
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(FingerprintGrowComponent),
-            cv.Optional(CONF_MODE): validate_grow_mode,
             cv.Optional(CONF_SENSING_PIN): pins.gpio_input_pin_schema,
             cv.Optional(CONF_SENSOR_POWER_PIN): pins.gpio_output_pin_schema,
             cv.Optional(
@@ -140,59 +152,52 @@ CONFIG_SCHEMA = cv.All(
             ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
-            cv.Optional(CONF_ON_FINGER_SCAN_START): automation.validate_automation(
+            cv.Optional(CONF_ON_SLEEP_ENTER): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanStartTrigger
+                        SleepEnterTrigger
                     ),
                 }
             ),
-            cv.Optional(CONF_ON_FINGER_SCAN_END): automation.validate_automation(
+            cv.Optional(CONF_ON_SLEEP_EXIT): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanEndTrigger
+                        SleepExitTrigger
                     ),
                 }
             ),
-            cv.Optional(CONF_ON_FINGER_SCAN_MATCHED): automation.validate_automation(
+            cv.Optional(CONF_ON_SCAN_START): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanMatchedTrigger
+                        ScanStartTrigger
                     ),
                 }
             ),
-            cv.Optional(CONF_ON_FINGER_SCAN_UNMATCHED): automation.validate_automation(
+            cv.Optional(CONF_ON_SCAN_END): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanUnmatchedTrigger
+                        ScanEndTrigger
                     ),
                 }
             ),
-            cv.Optional(CONF_ON_FINGER_SCAN_MISPLACED): automation.validate_automation(
+            cv.Optional(CONF_ON_SCAN_WAITING): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanMisplacedTrigger
+                        ScanWaitingTrigger
                     ),
                 }
             ),
-            cv.Optional(CONF_ON_FINGER_SCAN_INVALID): automation.validate_automation(
+            cv.Optional(CONF_ON_ENROLLMENT_WAITING): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        FingerScanInvalidTrigger
+                        EnrollmentWaitingTrigger
                     ),
                 }
             ),
-            cv.Optional(CONF_ON_ENROLLMENT_SCAN): automation.validate_automation(
+            cv.Optional(CONF_ON_ENROLLMENT_FINISHED): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        EnrollmentScanTrigger
-                    ),
-                }
-            ),
-            cv.Optional(CONF_ON_ENROLLMENT_DONE): automation.validate_automation(
-                {
-                    cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
-                        EnrollmentDoneTrigger
+                        EnrollmentFinishedTrigger
                     ),
                 }
             ),
@@ -210,7 +215,15 @@ CONFIG_SCHEMA = cv.All(
     validate,
 )
 
+FINGERPRINT_GROW_LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
+    {
+        cv.GenerateID(): cv.use_id(FingerprintGrowComponent),
+        cv.Required(CONF_STATE): cv.templatable(cv.boolean),
+    },
+    key=CONF_STATE,
+)
 
+# ========================== CODE GEN ========================== #
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -219,9 +232,6 @@ async def to_code(config):
         password = config[CONF_PASSWORD]
         cg.add(var.set_password(password))
     await uart.register_uart_device(var, config)
-
-    if CONF_MODE in config:
-        cg.add(var.set_mode(config[CONF_MODE]))
 
     if CONF_NEW_PASSWORD in config:
         new_password = config[CONF_NEW_PASSWORD]
@@ -239,39 +249,33 @@ async def to_code(config):
         idle_period_to_sleep_ms = config[CONF_IDLE_PERIOD_TO_SLEEP]
         cg.add(var.set_idle_period_to_sleep_ms(idle_period_to_sleep_ms))
 
-    for conf in config.get(CONF_ON_FINGER_SCAN_START, []):
+    for conf in config.get(CONF_ON_SLEEP_ENTER, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
 
-    for conf in config.get(CONF_ON_FINGER_SCAN_END, []):
+    for conf in config.get(CONF_ON_SLEEP_EXIT, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
 
-    for conf in config.get(CONF_ON_FINGER_SCAN_MATCHED, []):
-        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
-        await automation.build_automation(
-            trigger, [(cg.uint16, "finger_id"), (cg.uint16, "confidence")], conf
-        )
-
-    for conf in config.get(CONF_ON_FINGER_SCAN_UNMATCHED, []):
+    for conf in config.get(CONF_ON_SCAN_START, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
 
-    for conf in config.get(CONF_ON_FINGER_SCAN_MISPLACED, []):
+    for conf in config.get(CONF_ON_SCAN_END, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
 
-    for conf in config.get(CONF_ON_FINGER_SCAN_INVALID, []):
+    for conf in config.get(CONF_ON_SCAN_WAITING, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [], conf)
 
-    for conf in config.get(CONF_ON_ENROLLMENT_SCAN, []):
+    for conf in config.get(CONF_ON_ENROLLMENT_WAITING, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(
             trigger, [(cg.uint8, "scan_num"), (cg.uint16, "finger_id")], conf
         )
 
-    for conf in config.get(CONF_ON_ENROLLMENT_DONE, []):
+    for conf in config.get(CONF_ON_ENROLLMENT_FINISHED, []):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(cg.uint16, "finger_id")], conf)
 
@@ -279,10 +283,29 @@ async def to_code(config):
         trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
         await automation.build_automation(trigger, [(cg.uint16, "finger_id")], conf)
 
+    for conf in config.get(CONF_ON_FINGER_MATCHED, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(
+            trigger, [(cg.uint16, "finger_id"), (cg.uint16, "confidence")], conf
+        )
+
+    for conf in config.get(CONF_ON_FINGER_NOT_FOUND, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(trigger, [], conf)
+
+    for conf in config.get(CONF_ON_FINGER_MISSPLACED, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(trigger, [], conf)
+
+    for conf in config.get(CONF_ON_FINGER_MISSING, []):
+        trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+        await automation.build_automation(trigger, [], conf)
+
+# ========================== ACTIONS REGISTRACTION ========================== #
 
 @automation.register_action(
-    "fingerprint_grow.enroll",
-    EnrollmentAction,
+    "fingerprint_grow.start_enroll",
+    StartEnrollmentAction,
     cv.maybe_simple_value(
         {
             cv.GenerateID(): cv.use_id(FingerprintGrowComponent),
@@ -320,8 +343,8 @@ async def fingerprint_grow_cancel_enroll_to_code(config, action_id, template_arg
 
 
 @automation.register_action(
-    "fingerprint_grow.delete",
-    DeleteAction,
+    "fingerprint_grow.delete_template",
+    DeleteTemplateAction,
     cv.maybe_simple_value(
         {
             cv.GenerateID(): cv.use_id(FingerprintGrowComponent),
@@ -340,8 +363,8 @@ async def fingerprint_grow_delete_to_code(config, action_id, template_arg, args)
 
 
 @automation.register_action(
-    "fingerprint_grow.delete_all",
-    DeleteAllAction,
+    "fingerprint_grow.delete_all_templates",
+    DeleteAllTemplatesAction,
     cv.Schema(
         {
             cv.GenerateID(): cv.use_id(FingerprintGrowComponent),
@@ -353,33 +376,9 @@ async def fingerprint_grow_delete_all_to_code(config, action_id, template_arg, a
     await cg.register_parented(var, config[CONF_ID])
     return var
 
-
-FINGERPRINT_GROW_LED_CONTROL_ACTION_SCHEMA = cv.maybe_simple_value(
-    {
-        cv.GenerateID(): cv.use_id(FingerprintGrowComponent),
-        cv.Required(CONF_STATE): cv.templatable(cv.boolean),
-    },
-    key=CONF_STATE,
-)
-
-
-@automation.register_action(
-    "fingerprint_grow.led_control",
-    LEDControlAction,
-    FINGERPRINT_GROW_LED_CONTROL_ACTION_SCHEMA,
-)
-async def fingerprint_grow_led_control_to_code(config, action_id, template_arg, args):
-    var = cg.new_Pvariable(action_id, template_arg)
-    await cg.register_parented(var, config[CONF_ID])
-
-    template_ = await cg.templatable(config[CONF_STATE], args, cg.bool_)
-    cg.add(var.set_state(template_))
-    return var
-
-
 @automation.register_action(
     "fingerprint_grow.aura_led_control",
-    AuraLEDControlAction,
+    AuraLedControlAction,
     cv.Schema(
         {
             cv.GenerateID(): cv.use_id(FingerprintGrowComponent),
@@ -390,9 +389,7 @@ async def fingerprint_grow_led_control_to_code(config, action_id, template_arg, 
         }
     ),
 )
-async def fingerprint_grow_aura_led_control_to_code(
-    config, action_id, template_arg, args
-):
+async def fingerprint_grow_aura_led_control_to_code(config, action_id, template_arg, args):
     var = cg.new_Pvariable(action_id, template_arg)
     await cg.register_parented(var, config[CONF_ID])
 

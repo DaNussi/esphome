@@ -35,6 +35,7 @@ enum GrowCommand {
   STORE = 0x06,
   LOAD = 0x07,
   UPLOAD = 0x08,
+  UPLOAD_IMAGE = 0x0a,
   DELETE = 0x0C,
   DELETE_ALL = 0x0D,  // aka EMPTY
   READ_SYS_PARAM = 0x0F,
@@ -92,12 +93,6 @@ enum GrowAuraLEDColor {
   WHITE = 0x07,
 };
 
-enum GrowMode {
-  GROW_MODE_STANDALONE = 0x00,
-  GROW_MODE_HOMEID = 0x01
-};
-
-
 class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevice {
  public:
   void update() override;
@@ -112,7 +107,6 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   }
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_sensor_power_pin(GPIOPin *sensor_power_pin) { this->sensor_power_pin_ = sensor_power_pin; }
-  void set_mode(GrowMode mode) { this->mode_ = mode; }
   void set_password(uint32_t password) { this->password_ = password; }
   void set_new_password(uint32_t new_password) { this->new_password_ = new_password; }
   void set_idle_period_to_sleep_ms(uint32_t period_ms) { this->idle_period_to_sleep_ms_ = period_ms; }
@@ -171,19 +165,14 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   void aura_led_control(uint8_t state, uint8_t speed, uint8_t color, uint8_t count);
 
  protected:
-  GrowMode mode_ = GROW_MODE_STANDALONE;
   void scan_and_match_();
   uint8_t scan_image_(uint8_t buffer);
   uint8_t save_fingerprint_();
   bool check_password_();
   bool set_password_();
   bool get_parameters_();
-  void get_fingerprint_count_();
-  uint8_t transfer_(std::vector<uint8_t> *p_data_buffer);
-  uint8_t send_command_();
   void sensor_wakeup_();
   void sensor_sleep_();
-  void download_image_();
 
   std::vector<uint8_t> data_ = {};
   std::vector<uint8_t> image_ = {};
@@ -212,36 +201,83 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   sensor::Sensor *last_finger_id_sensor_{nullptr};
   sensor::Sensor *last_confidence_sensor_{nullptr};
   binary_sensor::BinarySensor *enrolling_binary_sensor_{nullptr};
-  CallbackManager<void()> finger_scan_invalid_callback_;
-  CallbackManager<void()> finger_scan_start_callback_;
-  CallbackManager<void()> finger_scan_end_callback_;
-  CallbackManager<void(uint16_t, uint16_t)> finger_scan_matched_callback_;
-  CallbackManager<void()> finger_scan_unmatched_callback_;
-  CallbackManager<void()> finger_scan_misplaced_callback_;
-  CallbackManager<void(uint8_t, uint16_t)> enrollment_scan_callback_;
-  CallbackManager<void(uint16_t)> enrollment_done_callback_;
-  CallbackManager<void(uint16_t)> enrollment_failed_callback_;
+
+  
+  CallbackManager<void()> sleep_enter_callback_;
+  CallbackManager<void()> sleep_exit_callback_;
+
+  
+  CallbackManager<void()> scan_start_callback_;
+  CallbackManager<void()> scan_end_callback_;
+  CallbackManager<void()> scan_waiting_callback_;
+  
+  CallbackManager<void()> enrollment_waiting_callback_;
+  CallbackManager<void(uint16_t)> enrollment_finished_callback_;
+  CallbackManager<void()> enrollment_failed_callback;
+  
+  CallbackManager<void()> finger_missing_callback_;
+  CallbackManager<void()> finger_missplaced_callback_;
+  CallbackManager<void(uint16_t, uint16_t)> finger_matched_callback_;
+  CallbackManager<void()> finger_not_found_callback_;
 };
 
-class FingerScanStartTrigger : public Trigger<> {
+class SleepEnterTrigger : public Trigger<> {
  public:
-  explicit FingerScanStartTrigger(FingerprintGrowComponent *parent) {
-    parent->add_on_finger_scan_start_callback([this]() { this->trigger(); });
+  explicit SleepEnterTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_sleep_enter_callback([this]() { this->trigger(); });
   }
 };
 
-class FingerScanEndTrigger : public Trigger<> {
+class SleepExitTrigger : public Trigger<> {
  public:
-  explicit FingerScanEndTrigger(FingerprintGrowComponent *parent) {
-    parent->add_on_finger_scan_end_callback([this]() { this->trigger(); });
+  explicit SleepExitTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_sleep_exit_callback([this]() { this->trigger(); });
   }
 };
 
-class FingerScanMatchedTrigger : public Trigger<uint16_t, uint16_t> {
+class ScanStartTrigger : public Trigger<> {
  public:
-  explicit FingerScanMatchedTrigger(FingerprintGrowComponent *parent) {
-    parent->add_on_finger_scan_matched_callback(
-        [this](uint16_t finger_id, uint16_t confidence) { this->trigger(finger_id, confidence); });
+  explicit ScanStartTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_scan_start_callback([this]() { this->trigger(); });
+  }
+};
+
+class ScanEndTrigger : public Trigger<> {
+ public:
+  explicit ScanEndTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_scan_end_callback([this]() { this->trigger(); });
+  }
+};
+
+class ScanWaitingTrigger : public Trigger<uint16_t, uint16_t> {
+ public:
+  explicit ScanEndTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_scan_waiting_callback([this]() { this->trigger(); });
+  }
+};
+
+class EnrollmentWaitingTrigger : public Trigger<uint8_t, uint16_t> {
+ public:
+  explicit EnrollmentWaitingTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_enrollment_waiting_callback(
+        [this](uint8_t scan_num, uint16_t finger_id) { this->trigger(scan_num, finger_id); });
+  }
+};
+
+// TODO: ADD ALL TRIGGER
+
+class EnrollmentFinishedTrigger : public Trigger<uint8_t, uint16_t> {
+ public:
+  explicit EnrollmentFinishedTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_enrollment_finished_callback(
+        [this](uint16_t finger_id) { this->trigger(finger_id); });
+  }
+};
+
+class EnrollmentFailedTrigger : public Trigger<uint16_t, uint16_t> {
+ public:
+  explicit EnrollmentFailedTrigger(FingerprintGrowComponent *parent) {
+    parent->add_on_enrollment_failed_callback([this]() { this->trigger(); });
   }
 };
 
